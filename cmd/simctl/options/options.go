@@ -16,11 +16,14 @@ package options
 
 import (
 	"fmt"
-	"github.com/D0m021ng/scheduler-simulator/pkg/simctl/generate"
 	"os"
 
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/kubectl/pkg/cmd"
 
+	"github.com/D0m021ng/scheduler-simulator/pkg/simctl/apply"
+	"github.com/D0m021ng/scheduler-simulator/pkg/simctl/generate"
 	"github.com/D0m021ng/scheduler-simulator/pkg/version"
 )
 
@@ -65,6 +68,14 @@ func BuildGenerateCmd() *cobra.Command {
 	generateCmd.AddCommand(genPodCmd)
 
 	return generateCmd
+}
+
+func BuildApplyCmd() *cobra.Command {
+	return apply.NewCmdApply(genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})
+}
+
+func BuildKubectlCmd() *cobra.Command {
+	return cmd.NewDefaultKubectlCommand()
 }
 
 func VersionCommand() *cobra.Command {

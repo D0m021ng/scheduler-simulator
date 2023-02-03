@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog/v2"
+	"k8s.io/kubectl/pkg/util/templates"
 
 	"github.com/D0m021ng/scheduler-simulator/cmd/simctl/options"
 )
@@ -37,16 +38,33 @@ func main() {
 	go wait.Until(klog.Flush, *logFlushFreq, wait.NeverStop)
 	defer klog.Flush()
 
-	rootCmd := cobra.Command{
-		Use: "simctl",
+	rootCmd := &cobra.Command{
+		Use:  "simctl",
+		Long: "simctl controls test resources on simulator/kubernetes",
 	}
 
 	// tell Cobra not to provide the default completion command
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
-	rootCmd.AddCommand(options.BuildGenerateCmd())
-	//rootCmd.AddCommand(options.BuildDumpCmd())
-	rootCmd.AddCommand(options.VersionCommand())
+	groups := templates.CommandGroups{
+		{
+			Message: "Basic Commands:",
+			Commands: []*cobra.Command{
+				options.BuildGenerateCmd(),
+				options.BuildApplyCmd(),
+				options.VersionCommand(),
+			},
+		},
+		{
+			Message: "Kubernetes Origin Commands:",
+			Commands: []*cobra.Command{
+				options.BuildKubectlCmd(),
+			},
+		},
+	}
+	groups.Add(rootCmd)
+	filters := []string{"options"}
+	templates.ActsAsRootCommand(rootCmd, filters, groups...)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Printf("Failed to execute command: %v\n", err)
